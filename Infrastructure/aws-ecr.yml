@@ -1,0 +1,256 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Stack for hosting the ccg works api
+
+Resources:
+
+  CcgWorksRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ccgworks-api-rol
+      Path: /ccgworks/
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ec2.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Policies:
+        - PolicyName: ccgworks-api-pol
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:GetSigningCertificate
+              Resource:
+                - !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/eu-west-2_4YYIIEtaa
+            - Effect: Allow
+              Action:
+                - ecr:BatchCheckLayerAvailability
+                - ecr:BatchGetImage
+                - ecr:GetDownloadUrlForLayer
+                - ecr:GetAuthorizationToken
+              Resource:
+                - !Sub arn:aws:ecr::${AWS::AccountId}:repository/ccgworks
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+                - s3:GetObject
+                - s3:ListObject
+              Resource:
+                - !Sub arn:aws:s3:::cogs-images/*
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:               
+      GroupDescription: ECS Security Group for load balancer
+      VpcId: vpc-e262d18a
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  CcgWorksSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:             
+      GroupDescription: ECS Security Group for cluster
+      VpcId: vpc-e262d18a
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535      
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          CidrIp: '0.0.0.0/0'
+          FromPort: 0
+          ToPort: 65535
+
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS Security Group for database
+      VpcId: vpc-e262d18a
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref CcgWorksSecurityGroup
+          
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: CcgWorksApiCluster
+
+  CloudwatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: CcgWorksApiLogs
+      RetentionInDays: 14
+
+  CcgWorksAlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: ccgworks-alb
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '30'
+      Subnets:
+        - subnet-86e16eef
+        - subnet-ebb37a91
+        - subnet-f45d42b9
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+
+  CcgWorksALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref 'CcgWorksTargetGroup'
+      LoadBalancerArn: !Ref 'CcgWorksAlb'
+      Port: '80'
+      Protocol: HTTP    
+
+  ApiALBListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn: CcgWorksALBListener
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref 'CcgWorksTargetGroup'
+      Conditions:
+        - Field: path-pattern
+          Values: [/]
+      ListenerArn: !Ref 'CcgWorksALBListener'
+      Priority: 1
+
+  ApiALBListenerHttps:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref 'CcgWorksTargetGroup'
+      LoadBalancerArn: !Ref 'CcgWorksAlb'
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+      - CertificateArn: arn:aws:acm:eu-west-2:848502523218:certificate/34b8bf1a-d7cf-48d8-817a-ebc4bd9fca78
+
+  ApiALBListenerRuleHttps:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref 'CcgWorksTargetGroup'
+      Conditions:
+        - Field: path-pattern
+          Values: [/]
+      ListenerArn: !Ref 'ApiALBListenerHttps'
+      Priority: 1
+
+  CcgWorksTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: CcgWorksAlb
+    Properties:
+      Name: !Sub ccgworks-target-group
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /health-check
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-e262d18a
+      
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - subnet-86e16eef
+        - subnet-ebb37a91
+        - subnet-f45d42b9
+      LaunchConfigurationName: !Ref EcsLaunchConfig
+      MinSize: 1
+      MaxSize: 1
+      DesiredCapacity: 1      
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
+
+  EcsLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      # Omit KeyName to prevent SSH
+      ImageId: ami-01bee3897bba49d78
+      SecurityGroups:
+        - !Ref CcgWorksSecurityGroup
+      InstanceType: t2.micro
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+
+          # register with ECS cluster
+          echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
+
+  CcgWorksService:
+    Type: AWS::ECS::Service
+    DependsOn: CcgWorksALBListener
+    Properties:
+      # Use default AWSServiceRoleForECS service-linked role
+      ServiceName: !Sub ccgworks-ecs
+      Cluster: !Ref 'ECSCluster'
+      DesiredCount: '1'
+      LoadBalancers:
+        - ContainerName: CcgWorksApi
+          ContainerPort: '80'
+          TargetGroupArn: !Ref 'CcgWorksTargetGroup'
+      TaskDefinition: !Ref 'CcgWorksTaskDefinition'
+
+  CcgWorksTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ccgworks-task
+      ContainerDefinitions:
+        - Name: CcgWorksApi
+          Essential: 'true'
+          Image: 848502523218.dkr.ecr.eu-west-2.amazonaws.com/ccgworks:api-0.3
+          MemoryReservation: 900
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'CloudwatchLogsGroup'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: Api
+          PortMappings:
+            - ContainerPort: 80
+          Environment:
+            - Name: HOST
+              Value: AWS
+  
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref CcgWorksRole

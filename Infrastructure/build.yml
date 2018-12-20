@@ -1,0 +1,42 @@
+variables:
+  buildConfiguration: 'Release'
+
+jobs:
+- job: build_api
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - script: |
+      dotnet publish CogsLite.Api/CogsLite.Api.csproj -c Release -o ./out
+      docker build -t ccgworks-api CogsLite.Api
+      docker save -o $BUILD_ARTIFACTSTAGINGDIRECTORY/ccgworks-api.tar ccgworks-api
+    name: build_api
+    displayName: 'Build and publish dotnet api'
+    workingDirectory: Cogslite
+
+  - script: |
+      cp Infrastructure/aws-ecr.yml $BUILD_ARTIFACTSTAGINGDIRECTORY/aws-ecr.yml
+    name: copy_files
+    displayName: 'Copy infra'
+    workingDirectory: Cogslite
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+        artifactName: release
+
+- job: build_web
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - script: |
+      yarn install
+      yarn build
+      mkdir -p $BUILD_ARTIFACTSTAGINGDIRECTORY/web/
+      cp -r dist $BUILD_ARTIFACTSTAGINGDIRECTORY/web/      
+    name: build_web
+    displayName: 'Build web'
+    workingDirectory: Cogslite/Vue
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+        artifactName: release
