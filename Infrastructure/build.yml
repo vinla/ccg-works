@@ -7,12 +7,11 @@ jobs:
     vmImage: 'Ubuntu 16.04'
   steps:
   - script: |
-      dotnet publish CogsLite.Api/CogsLite.Api.csproj -c Release -o ./out
-      docker build -t ccgworks-api CogsLite.Api
+      dotnet publish CcgWorks.Api/CcgWorks.Api.csproj -c Release -o ./out
+      docker build -t ccgworks-api CcgWorks.Api
       docker save -o $BUILD_ARTIFACTSTAGINGDIRECTORY/ccgworks-api.tar ccgworks-api
     name: build_api
     displayName: 'Build and publish dotnet api'
-    workingDirectory: Cogslite
 
   - script: |
       cp Infrastructure/aws-ecr.yml $BUILD_ARTIFACTSTAGINGDIRECTORY/aws-ecr.yml
@@ -35,7 +34,7 @@ jobs:
       cp -r dist $BUILD_ARTIFACTSTAGINGDIRECTORY/web/      
     name: build_web
     displayName: 'Build web'
-    workingDirectory: Cogslite/Vue
+    workingDirectory: Web
 
   - task: PublishBuildArtifacts@1
     inputs:
