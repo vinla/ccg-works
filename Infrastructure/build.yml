@@ -17,7 +17,6 @@ jobs:
       cp Infrastructure/aws-ecr.yml $BUILD_ARTIFACTSTAGINGDIRECTORY/aws-ecr.yml
     name: copy_files
     displayName: 'Copy infra'
-    workingDirectory: Cogslite
 
   - task: PublishBuildArtifacts@1
     inputs:
