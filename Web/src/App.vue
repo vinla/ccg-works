@@ -3,7 +3,7 @@
     <div class="fixed pin z-50 overflow-auto bg-overlay flex justify-center" v-show="$modal">
       <dynamic :modal="$modal"/>
     </div>
-    <div class="bg-cogs-primary">
+    <div class="bg-cogs-black">
       <nav class="w-full flex items-center justify-between flex-wrap py-2 px-6 container mx-auto">
         <span>
           <router-link to="/" class="no-underline">
@@ -11,16 +11,16 @@
           </router-link>
           <router-link
             to="/"
-            class="text-cogs-secondary font-semibold text-xl tracking-tight no-underline"
+            class="text-cogs-yellow font-semibold text-xl tracking-tight no-underline"
           >CCG Works</router-link>
         </span>
         <span v-if="!isSignedIn">
-          <a :href="signInUrl" class="inline-block rounded py-2 px-4 bg-cogs-secondary text-cogs-secondary hover:text-red-lightest no-underline">            
+          <a :href="signInUrl" class="inline-block rounded py-2 px-4 bg-cogs-grey text-cogs-yellow hover:text-red-lightest no-underline">            
           Sign In</a>
         </span>
         <span v-if="isSignedIn">
           <router-link
-            class="mx-2 bg-cogs-alt inline-block rounded py-2 px-4 text-red-darker no-underline"
+            class="mx-2 bg-cogs-yellow inline-block rounded py-2 px-4 text-red-darker no-underline"
             to="/game/new"
           ><i class="fas fa-plus"></i></router-link>
           <drop-down-button :text="profile.userName">
@@ -90,26 +90,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: left;
   color: #2c3e50;
-}
-
-.bg-cogs-primary {
-  background-color: #1a0315;
-}
-
-.bg-cogs-secondary {
-  background-color: #535353;
-}
-
-.bg-cogs-alt {
-  background-color: #dcae1d;
-}
-
-.text-cogs-secondary {
-  color: #dcae1d;
-}
-
-.text-cogs-primary {
-  color: #984b43;
 }
 
 .bg-overlay {
