@@ -58,11 +58,14 @@ export default {
   name: "App",
   components: { CogsGlyph, DropDownButton, Dynamic, LinkButton },
   mounted: function() {    
-    profileService.getProfile().then(p => (this.profile = p));
+    this.$store.dispatch('retrieveProfile');
   },
   computed: {
-    isSignedIn: function() {
-      return this.$auth.isSignedIn();
+    profile: function() {
+      return this.$store.state.profile
+    },
+    isSignedIn: function() {      
+      return this.$store.state.profile.hasOwnProperty('userName')
     },
     signInUrl: function() {            
       var result = "https://cogs.auth.eu-west-2.amazoncognito.com/login?" + qs.stringify(this.oauth);
@@ -75,8 +78,7 @@ export default {
         response_type: "token",
         client_id: "1bf03fuqd017thrnnej7lcpeb7",
         redirect_uri: "__uri"
-      },
-      profile: {}
+      }
     };
   }
 };
