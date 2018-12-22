@@ -3,20 +3,24 @@
     <div class="float-left mr-2">
       <img class="rounded block" :src="gameImageUrl(game)" width="90" height="180">
       <router-link
-        class="block rounded-full bg-cogs-secondary text-cogs-secondary px-2 py-1 my-2 text-center text-xs no-underline"
+        v-if="isGameOwner"
+        class="block rounded-full bg-cogs-grey text-cogs-yellow px-2 py-1 my-2 text-center text-xs no-underline"
         :to="{name: 'add-cards', params: {gameId: game.id}}"
       >Add cards</router-link>
       <a
-        class="block rounded-full bg-cogs-secondary text-cogs-secondary px-2 py-1 my-2 text-center text-xs no-underline"
+        v-if="isGameOwner"
+        class="block rounded-full bg-cogs-grey text-cogs-yellow px-2 py-1 my-2 text-center text-xs no-underline"
         href="#"
       >Edit details</a>
       <a
-        class="block rounded-full bg-cogs-secondary text-cogs-secondary px-2 py-1 my-2 text-center text-xs no-underline"
+        v-if="isSignedIn"
+        class="block rounded-full bg-cogs-grey text-cogs-yellow px-2 py-1 my-2 text-center text-xs no-underline"
         href="#"
         @click="createDeck"
       >Create deck</a>
       <a
-        class="block rounded-full bg-cogs-secondary text-cogs-secondary px-2 py-1 my-2 text-center text-xs no-underline"
+        v-if="isSignedIn"
+        class="block rounded-full bg-cogs-grey text-cogs-yellow px-2 py-1 my-2 text-center text-xs no-underline"
         href="#"
         @click="loadDeck"
       >Load deck</a>
@@ -43,9 +47,17 @@
             href="#"
           >All</li>
         </ul>
-        <span>{{this.deck.name}}</span>
-        <button v-show="this.deck.hasChanges" class="px-4 py-2 rounded bg-cogs-secondary text-cogs-secondary" @click="saveDeck">Save changes</button>
-        <a :href="`http://localhost:5000/api/deck/${this.deck.id}/sheet`">deck sheet</a>
+        <div class="inline-flex border border-grey rounded w-auto ml-2 p-0">
+          <span class="flex items-center bg-cogs-grey px-2 py-2 whitespace-no-wrap text-cogs-yellow border-r border-grey">{{this.deck.cardCount()}}</span>
+          <div class="px-3 py-2" >{{this.deck.name}}</div>
+          <span class="flex items-center bg-cogs-yellow px-2 py-2 whitespace-no-wrap text-cogs-red border-l border-grey cursor-pointer"
+            v-show="this.deck.hasChanges" @click="saveDeck">
+            <i class="fas fa-save"></i>
+          </span>
+          <span class="flex items-center bg-grey-lighter px-2 py-2 whitespace-no-wrap text-grey-dark border-l border-grey">
+            <i class="fas fa-cog"></i>
+          </span>          	
+        </div>        
       </span>
     </div>
     <ul class="list-reset flex flex-wrap px-2 py-2">
@@ -53,6 +65,7 @@
         <card-item
           :card="card"
           :cardCount="cardCount(card)"
+          :showOverlay="deckIsLoaded"
           @add="addCard(card)"
           @remove="removeCard(card)"
         />
@@ -75,6 +88,12 @@ export default {
   computed: {
     deckIsLoaded: function() {
       return this.deck !== null;
+    },
+    isSignedIn: function() {      
+      return this.$store.getters.isSignedIn;
+    },
+    isGameOwner: function() {
+      return this.game.owner.id === this.$store.state.profile.id;
     }    
   },
   mounted: function() {

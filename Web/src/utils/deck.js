@@ -45,6 +45,10 @@ export class Deck {
       return 0;
   }
 
+  cardCount() {
+    return this.items.map(i => i.amount).reduce((a, b) => a + b, 0);
+  }
+
   getDeckEntry(card) {
     return this.items.find(function (c) {
       return c.id == card.id;
