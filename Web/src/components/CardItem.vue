@@ -1,6 +1,7 @@
 <template>
   <div class="card-item rounded mx-3 my-3 relative">
     <div
+      v-if="showOverlay"
       class="flex items-end justify-between absolute pin-t pin-l w-full p-2 show-on-hover"
       style="height: 175px; background-color:rgba(0, 0, 0, 0.25);"
     >
@@ -35,7 +36,7 @@
 
 <script>
 export default {
-  props: ["card", "cardCount"],
+  props: ["card", "cardCount", "showOverlay"],
   methods: {
     getImageUrl: function(card) {
       return card.imageUrl;

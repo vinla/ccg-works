@@ -65,7 +65,7 @@ export default {
       return this.$store.state.profile
     },
     isSignedIn: function() {      
-      return this.$store.state.profile.hasOwnProperty('userName')
+      return this.$store.getters.isSignedIn;
     },
     signInUrl: function() {            
       var result = "https://cogs.auth.eu-west-2.amazoncognito.com/login?" + qs.stringify(this.oauth);

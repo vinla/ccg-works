@@ -9,7 +9,9 @@ const state = {
 }
 
 const getters = {
-    
+    isSignedIn: state => {
+        return state.profile.hasOwnProperty('userName');
+    }
 }
 
 const actions = {
