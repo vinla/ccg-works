@@ -60,7 +60,8 @@
             </span>
             <div slot="menu" class="bg-white shadow rounded border overflow-hidden">
               <a
-                href="#"                
+                target="_BLANK"
+                :href="deckSheetUrl"                
                 class="no-underline block px-4 py-3 border-b text-grey-darkest bg-white hover:text-white hover:bg-red-darker whitespace-no-wrap"
               >Deck sheet</a>
               <a
@@ -70,6 +71,7 @@
               >Clone deck</a>
               <a
                 href="#"
+                @click="deleteDeck"
                 class="no-underline block px-4 py-3 border-b text-grey-darkest bg-white hover:text-white hover:bg-red-darker whitespace-no-wrap"
               >Delete deck</a>
             </div>
@@ -98,6 +100,7 @@ import gamesService from "../services/gamesService";
 import cardsService from "../services/cardsService";
 import deckService from "../services/deckService";
 import * as utils from "../utils/deck";
+import axios from 'axios';
 import DropDownButton from "../components/DropDownButton";
 
 export default {
@@ -112,7 +115,10 @@ export default {
     },
     isGameOwner: function() {
       return this.game.owner.id === this.$store.state.profile.id;
-    }    
+    },
+    deckSheetUrl: function() {
+      return axios.defaults.baseURL + "/deck/" + this.deck.id + "/sheet";
+    }
   },
   mounted: function() {
     var gameId = this.$route.params.gameId;
@@ -190,15 +196,37 @@ export default {
       this.$showModal({
         component: "modals/UserPrompt",
         data: {
-          prompt: 'Enter a name for the clone'
+          prompt: 'Enter a name for the clone',
+          acceptText: "Clone"
         }
       }).then(r => this.deck = this.deck.clone(r.value) );
+    },
+    deleteDeck: function() {
+      this.$showModal({
+        component: "modals/UserPrompt",
+        data: {
+          prompt: 'Confirm deletion by entering the name of the deck',
+          placeholder: this.deck.name,
+          acceptText: "Delete"
+        }
+      }).then(r => {
+        if(r.value === this.deck.name) {
+          deckService.deleteDeck(this.deck.id).then(r => {
+            // TODO: Remove the deck from the list of available decks
+            this.deck = null;
+          })
+        }
+        else {
+          alert("Deck name did not match");
+        }
+      });
     },
     createDeck: function() {
       this.$showModal({
         component: "modals/UserPrompt",
         data: {
-          prompt: 'Enter a name for your deck'
+          prompt: 'Enter a name for your deck',
+          acceptText: "Create"
         }
       }).then(r => this.deck = new utils.Deck('', r.value, this.game.id, [], 0));
     },

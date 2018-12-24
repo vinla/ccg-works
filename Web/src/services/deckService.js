@@ -6,5 +6,8 @@ export default {
     },
     loadDecks(gameId) {
         return axios.get(`decks/${gameId}`).then(r => r.data);
+    },
+    deleteDeck(deckId) {
+        return axios.delete(`deck/${deckId}`);
     }
 }

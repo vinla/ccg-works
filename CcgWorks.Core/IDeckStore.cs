@@ -9,5 +9,7 @@ namespace CcgWorks.Core
 		Task Save(Deck deck);
 		Task<Deck> Get(Guid deckId);
 		Task<IEnumerable<Deck>> ByGameAndOwner(Guid gameId, Guid ownerId);
+
+		Task Delete(Guid deckId);
 	}
 }

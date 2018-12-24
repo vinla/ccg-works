@@ -7,5 +7,7 @@ namespace CcgWorks.Core
     {
         Task Add(T item);
         Task UpdateOne(Guid id, Action<T> updateAction);
+
+        Task Delete(Guid id);
     }
 }

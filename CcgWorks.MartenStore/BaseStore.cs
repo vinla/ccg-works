@@ -26,6 +26,15 @@ namespace CcgWorks.MartenStore
             }            
         }
 
+        public async Task Delete(Guid itemId)
+        {
+            using(var session = _documentStore.LightweightSession())
+            {
+                session.Delete<TEntity>(itemId);
+                await session.SaveChangesAsync();
+            }            
+        }
+        
         public async Task<IEnumerable<TEntity>> Get()
         {            
             using(var querySession = _documentStore.QuerySession())

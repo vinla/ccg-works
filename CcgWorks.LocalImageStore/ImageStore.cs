@@ -25,6 +25,7 @@ namespace CcgWorks.LocalImageStore
 
         public Task<byte[]> Get(string associatedObjectType, Guid associatedObjectId, int version)
         {
+            EnsureDirectory(associatedObjectType);
             return Task.Run(() =>
             {
                 var file = Directory

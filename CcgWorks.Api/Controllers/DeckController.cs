@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CcgWorks.Api.Controllers
 {
 	[ApiController]
-    public class DeckController : ControllerBase
+	public class DeckController : ControllerBase
     {
         private readonly IDeckStore _deckStore;
 		private readonly IImageStore _imageStore;
@@ -33,7 +33,24 @@ namespace CcgWorks.Api.Controllers
         public async Task<IActionResult> OnGet(Guid deckId)
 		{			
 			var deck = await _deckStore.Get(deckId);
+			
+			if(deck.Owner.Id != _userContext.SignedInUser.Id)
+				return NotFound();
+				
 			return new JsonResult(DeckData.FromDeck(deck));
+		}
+
+		[HttpDelete("/api/deck/{deckId}")]
+		public async Task<IActionResult> OnDelete(Guid deckId)
+		{
+			var deck = await _deckStore.Get(deckId);
+			
+			if(deck.Owner.Id != _userContext.SignedInUser.Id)
+				return NotFound();
+
+			await _deckStore.Delete(deckId);
+
+			return Ok();
 		}
 
         [HttpPost("/api/deck")]
