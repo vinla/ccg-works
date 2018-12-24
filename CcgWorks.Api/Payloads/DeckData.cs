@@ -9,7 +9,7 @@ namespace CcgWorks.Api.Payloads
 	{
 		public string id { get; set; }
 		public string name { get; set; }
-		public string gameid { get; set; }
+		public string gameId { get; set; }
 
 		public int version { get; set; }
 		public DeckDataItem[] items { get; set; }
@@ -20,7 +20,7 @@ namespace CcgWorks.Api.Payloads
 			return new Deck
 			{
 				Id = ParseOrCreateGuid(id),
-				GameId = ShortGuid.Parse(gameid),
+				GameId = ShortGuid.Parse(gameId),
 				Name = name,
 				Version = version,
 				Items = items.Select(i => new DeckItem
@@ -41,7 +41,7 @@ namespace CcgWorks.Api.Payloads
 			return new DeckData
 			{
 				id = deck.Id.ToShortGuid(),
-				gameid = deck.GameId.ToShortGuid(),
+				gameId = deck.GameId.ToShortGuid(),
 				name = deck.Name,
 				version = deck.Version,
 				items = deck.Items.Select(i => new DeckDataItem { id = i.CardId.ToShortGuid(), amount = i.Amount }).ToArray(),

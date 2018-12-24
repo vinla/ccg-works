@@ -54,4 +54,13 @@ export class Deck {
       return c.id == card.id;
     });
   }
+
+  clone(newName) {
+    var clonedItems = [];
+    for(var i = 0; i < this.items.length; i++) {
+      var item = this.items[i];
+      clonedItems.push({id: item.id, amount: item.amount});
+    }
+    return new Deck('', newName, this.gameId, clonedItems, 0);
+  }
 };

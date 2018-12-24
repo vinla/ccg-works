@@ -23,8 +23,14 @@
             class="mx-2 bg-cogs-yellow inline-block rounded py-2 px-4 text-red-darker no-underline"
             to="/game/new"
           ><i class="fas fa-plus"></i></router-link>
-          <drop-down-button :text="profile.userName">
-            <div class="bg-white shadow rounded border overflow-hidden">
+          <drop-down-button>
+            <span slot="button" class="appearance-none flex items-center inline-block text-cogs-yellow font-semibold bg-cogs-grey px-4 py-2 rounded">
+              <span>{{profile.userName}}</span>
+              <svg class="h-4 w-4 fill-current ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+              </svg>
+            </span>            
+            <div slot="menu" class="bg-white shadow rounded border overflow-hidden">
               <a
                 href="#"
                 class="no-underline block px-4 py-3 border-b text-grey-darkest bg-white hover:text-white hover:bg-red-darker whitespace-no-wrap"

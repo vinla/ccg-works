@@ -54,9 +54,26 @@
             v-show="this.deck.hasChanges" @click="saveDeck">
             <i class="fas fa-save"></i>
           </span>
-          <span class="flex items-center bg-grey-lighter px-2 py-2 whitespace-no-wrap text-grey-dark border-l border-grey">
-            <i class="fas fa-cog"></i>
-          </span>          	
+          <drop-down-button>
+            <span slot="button" class="flex items-center bg-grey-lighter px-2 py-2 whitespace-no-wrap text-grey-dark border-l border-grey relative">
+              <i class="fas fa-cog"></i>            
+            </span>
+            <div slot="menu" class="bg-white shadow rounded border overflow-hidden">
+              <a
+                href="#"                
+                class="no-underline block px-4 py-3 border-b text-grey-darkest bg-white hover:text-white hover:bg-red-darker whitespace-no-wrap"
+              >Deck sheet</a>
+              <a
+                href="#"
+                @click="cloneDeck"
+                class="no-underline block px-4 py-3 border-b text-grey-darkest bg-white hover:text-white hover:bg-red-darker whitespace-no-wrap"
+              >Clone deck</a>
+              <a
+                href="#"
+                class="no-underline block px-4 py-3 border-b text-grey-darkest bg-white hover:text-white hover:bg-red-darker whitespace-no-wrap"
+              >Delete deck</a>
+            </div>
+          </drop-down-button>                    	
         </div>        
       </span>
     </div>
@@ -81,10 +98,11 @@ import gamesService from "../services/gamesService";
 import cardsService from "../services/cardsService";
 import deckService from "../services/deckService";
 import * as utils from "../utils/deck";
+import DropDownButton from "../components/DropDownButton";
 
 export default {
   name: "cards",
-  components: { CardItem, PageButtons },
+  components: { CardItem, DropDownButton, PageButtons },
   computed: {
     deckIsLoaded: function() {
       return this.deck !== null;
@@ -167,6 +185,14 @@ export default {
         return this.deck.countOf(card);
       else
         return 0;
+    },
+    cloneDeck: function() {
+      this.$showModal({
+        component: "modals/UserPrompt",
+        data: {
+          prompt: 'Enter a name for the clone'
+        }
+      }).then(r => this.deck = this.deck.clone(r.value) );
     },
     createDeck: function() {
       this.$showModal({
