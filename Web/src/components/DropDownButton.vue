@@ -4,7 +4,7 @@
       <div role="button" class="inline-block select-none" @click="open = !open">
         <slot name="button"></slot>        
       </div>
-      <div class="absolute pin-r mt-px z-50" v-show="open">
+      <div class="absolute pin-r mt-px z-40" v-show="open">
         <slot name="menu"></slot>
       </div>
     </div>
