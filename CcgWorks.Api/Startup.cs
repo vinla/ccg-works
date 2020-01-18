@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using GorgleDevs.Mvc;
 using CcgWorks.MartenStore;
+using CcgWorks.SimpleDbStore;
 
 
 namespace CcgWorks.Api
@@ -39,7 +40,7 @@ namespace CcgWorks.Api
             services.AddHttpContextAccessor();            
             services.AddScoped<IUserContext, ClaimsIdentityUserContext>();
 
-            var env = Configuration.GetValue<string>("HOST") ?? "local";
+            var env = Configuration.GetValue<string>("HOST") ?? "AWS";
             if(env == "local")
             {
                 Console.WriteLine("Running locally");
@@ -53,9 +54,7 @@ namespace CcgWorks.Api
             else
             {                
                 Console.WriteLine("Running in AWS");
-                var parameterStore = new ParameterStore(awsOptions);                
-                var connectionString = parameterStore.GetParameterAsync("/ccgworks/connection_string").GetAwaiter().GetResult(); 
-                services.AddMarten(connectionString);
+                services.AddSimpleDbStore(awsOptions);
                 services.AddS3ImageStore(awsOptions);
             }
                                     

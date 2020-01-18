@@ -4,8 +4,8 @@ DOCKER-COMPOSE := docker-compose -f ./docker-compose.yml
 
 .PHONY: build-image
 build-image:
-	dotnet publish ./Cogslite.Api/Cogslite.Api.csproj -c Release -o ./out
-	cd Cogslite.Api && docker build -t cogs-api .
+	dotnet publish ./CcgWorks.Api/CcgWorks.Api.csproj -c Release -o ./out
+	cd CcgWorks.Api && docker build -t cogs-api .
 
 .PHONY: run
 run:	

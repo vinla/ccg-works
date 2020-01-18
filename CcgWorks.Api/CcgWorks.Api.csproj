@@ -22,6 +22,7 @@
     <ProjectReference Include="..\CcgWorks.LocalImageStore\CcgWorks.LocalImageStore.csproj" />
     <ProjectReference Include="..\CcgWorks.S3\CcgWorks.S3.csproj" />
     <ProjectReference Include="..\GorgleDevs.Mvc\GorgleDevs.Mvc.csproj" />
+    <ProjectReference Include="..\CcgWorks.SimpleDbStore\CcgWorks.SimpleDbStore.csproj" />
   </ItemGroup>
 
 </Project>
