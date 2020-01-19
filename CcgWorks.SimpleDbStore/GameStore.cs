@@ -16,8 +16,8 @@ namespace CcgWorks.SimpleDbStore
             return await LoadItems($"select * from {Domain}");
         }
 
-        protected override Game FromAttributes(string item, List<Amazon.SimpleDB.Model.Attribute> attributes) => throw new NotImplementedException();
+        protected override Game FromAttributes(string item, List<Amazon.SimpleDB.Model.Attribute> attributes) => GameConverter.AttributesToGame(item, attributes);
 
-        protected override List<Model.ReplaceableAttribute> ToAttributes(Game game, bool isUpdate) => throw new NotImplementedException();
+        protected override List<Model.ReplaceableAttribute> ToAttributes(Game game, bool isUpdate) => GameConverter.GameToAttributes(game, isUpdate);
     }
 }

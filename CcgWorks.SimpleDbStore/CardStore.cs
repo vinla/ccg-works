@@ -18,7 +18,7 @@ namespace CcgWorks.SimpleDbStore
         public async Task<IEnumerable<Card>> Get(Guid gameId)
         {
             var cards = new List<Card>();
-            var query = $"select * from {Domain} where GameId = '{gameId.ToString()}'";
+            var query = $"select * from {Domain} where GameId = '{gameId}'";
             return await LoadItems(query);            
         }
 

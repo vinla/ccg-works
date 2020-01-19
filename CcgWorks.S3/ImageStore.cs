@@ -1,31 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
 using CcgWorks.Core;
+using Microsoft.Extensions.Options;
 
 namespace CcgWorks.AwsStore
 {
     public class ImageStore : IImageStore
     {
-        private const string DistributionUri = @"https://d7knsuvwz5w4z.cloudfront.net/";
-        private const string BucketName = "cogs-images";
+        private readonly ImageStoreOptions _options;
         private readonly IAmazonS3 _s3Service;
 
-        public ImageStore(IAmazonS3 s3Service)
+        public ImageStore(IAmazonS3 s3Service, IOptions<ImageStoreOptions> options)
         {
             _s3Service = s3Service ?? throw new ArgumentNullException(nameof(s3Service));
+            _options = options.Value;
         }
 
         public async Task<string> Add(string associatedObjectType, Guid associatedObjectId, int version, string imageType, byte[] data)
         {
             var putRequest = new PutObjectRequest
             {
-                BucketName = BucketName,
+                BucketName = _options.BucketName,
                 Key =  GetKey(associatedObjectType, associatedObjectId),
                 InputStream = new MemoryStream(data),
                 CannedACL = S3CannedACL.PublicRead
@@ -41,7 +40,7 @@ namespace CcgWorks.AwsStore
                 throw new InvalidOperationException("Failed to store image");
             }
 
-            return DistributionUri + putRequest.Key;
+            return _options.DistributionUrl + putRequest.Key;
         }
         
         public async Task<byte[]> Get(string associatedObjectType, Guid associatedObjectId, int version)
@@ -50,7 +49,7 @@ namespace CcgWorks.AwsStore
 
             var getRequest = new GetObjectRequest
             {
-                BucketName = BucketName,
+                BucketName = _options.BucketName,
                 Key = imageKey,
             };
 
@@ -78,5 +77,11 @@ namespace CcgWorks.AwsStore
         {
             return $"{type}/{id}";
         }
+    }
+
+    public class ImageStoreOptions
+    {
+        public string BucketName { get; set; }
+        public string DistributionUrl { get; set; }
     }
 }

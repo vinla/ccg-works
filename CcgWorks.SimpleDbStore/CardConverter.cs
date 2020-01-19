@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using CcgWorks.Core;
 using Model = Amazon.SimpleDB.Model;
@@ -50,7 +49,7 @@ namespace CcgWorks.SimpleDbStore
                 new Model.ReplaceableAttribute
                 {
                     Name = "Name",
-                    Value = card.Name,
+                    Value = card.Name ?? String.Empty,
                     Replace = isUpdate
                 },
                 new Model.ReplaceableAttribute
@@ -68,13 +67,13 @@ namespace CcgWorks.SimpleDbStore
                 new Model.ReplaceableAttribute
                 {
                     Name = "Type",
-                    Value = card.Type,
+                    Value = card.Type ?? String.Empty,
                     Replace = isUpdate
                 },
                 new Model.ReplaceableAttribute
                 {
                     Name = "Tags",
-                    Value = String.Join(",", card.Tags),
+                    Value = card.Tags != null ? String.Join(",", card.Tags) : String.Empty,
                     Replace = isUpdate
                 }
             };

@@ -16,6 +16,7 @@ namespace CcgWorks.Api
     {
         public static SecurityKey GetCognitoKey(AWSOptions awsOptions)
         {
+            awsOptions.Region = Amazon.RegionEndpoint.EUWest2;
             var cognitoService = awsOptions.CreateServiceClient<IAmazonCognitoIdentityProvider>();
             var request = new GetSigningCertificateRequest
             {
@@ -24,6 +25,7 @@ namespace CcgWorks.Api
             var response = cognitoService.GetSigningCertificateAsync(request).GetAwaiter().GetResult();
             Console.WriteLine(response.Certificate);
             var cert = new X509Certificate2(Convert.FromBase64String(response.Certificate));
+            awsOptions.Region = Amazon.RegionEndpoint.EUWest1;
             return new X509SecurityKey(cert);
         }
     }

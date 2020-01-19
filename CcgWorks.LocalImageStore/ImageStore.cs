@@ -9,7 +9,7 @@ namespace CcgWorks.LocalImageStore
 {
     public class ImageStore : IImageStore
     {        
-        private ImageStoreOptions _options;
+        private readonly ImageStoreOptions _options;
         public ImageStore(IOptions<ImageStoreOptions> options)
         {
             _options = options.Value;

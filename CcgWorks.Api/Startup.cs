@@ -1,20 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using GorgleDevs.Mvc;
 using CcgWorks.MartenStore;
 using CcgWorks.SimpleDbStore;
@@ -54,8 +46,10 @@ namespace CcgWorks.Api
             else
             {                
                 Console.WriteLine("Running in AWS");
+                var bucketName = Configuration.GetValue<string>("IMAGE_STORE_BUCKET") ?? "ccgworks-images";
+                var distributionUrl = Configuration.GetValue<string>("IMAGE_STORE_URL") ?? "https://dd1bt1ytlgdzr.cloudfront.net";
                 services.AddSimpleDbStore(awsOptions);
-                services.AddS3ImageStore(awsOptions);
+                services.AddS3ImageStore(awsOptions, bucketName, distributionUrl);                
             }
                                     
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

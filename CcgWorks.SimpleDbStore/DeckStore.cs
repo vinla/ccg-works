@@ -14,7 +14,7 @@ namespace CcgWorks.SimpleDbStore
 
         public async Task<IEnumerable<Deck>> ByGameAndOwner(Guid gameId, Guid ownerId)
         {
-            return await LoadItems($"select * from {Domain} where GameId = {gameId} and OwnerId = {ownerId}");
+            return await LoadItems($"select * from {Domain} where GameId = '{gameId}' and OwnerId = '{ownerId}'");
         }
 
         public async Task<Deck> Get(Guid deckId)
@@ -27,8 +27,8 @@ namespace CcgWorks.SimpleDbStore
             await Add(deck);
         }
 
-        protected override Deck FromAttributes(string item, List<Amazon.SimpleDB.Model.Attribute> attributes) => throw new NotImplementedException();
+        protected override Deck FromAttributes(string item, List<Amazon.SimpleDB.Model.Attribute> attributes) => DeckConverter.AttributesToDeck(item, attributes);
 
-        protected override List<Model.ReplaceableAttribute> ToAttributes(Deck game, bool isUpdate) => throw new NotImplementedException();
+        protected override List<Model.ReplaceableAttribute> ToAttributes(Deck deck, bool isUpdate) => DeckConverter.DeckToAttributes(deck, isUpdate);
     }
 }
