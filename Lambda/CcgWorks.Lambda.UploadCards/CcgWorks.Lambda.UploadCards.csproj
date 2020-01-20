@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+        <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="1.2.0" />
+        <PackageReference Include="Amazon.Lambda.Core" Version="1.1.0" />
+        <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.5.0" />
+        <PackageReference Include="AWSSDK.S3" Version="3.3.31.24" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+        <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0007" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CcgWorks.Lambda\CcgWorks.Lambda.csproj" />
+    <ProjectReference Include="..\..\CcgWorks.Core\CcgWorks.Core.csproj" />
+    <ProjectReference Include="..\..\CcgWorks.S3\CcgWorks.S3.csproj" />
+    <ProjectReference Include="..\..\CcgWorks.SimpleDbStore\CcgWorks.SimpleDbStore.csproj" />
+  </ItemGroup>
+
+</Project>
