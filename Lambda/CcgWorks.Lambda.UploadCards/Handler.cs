@@ -15,6 +15,13 @@ namespace CcgWorks.Lambda.UploadCards
         private readonly IImageStore _imageStore;
         private readonly ICardStore _cardStore;
 
+        public Handler(IGameStore gameStore, IImageStore imageStore, ICardStore cardStore)
+        {
+            _gameStore = gameStore;
+            _imageStore = imageStore;
+            _cardStore = cardStore;
+        }
+
         public Task<APIGatewayProxyResponse> HandleRequest(APIGatewayProxyRequest proxyRequest, ILambdaContext lambdaContext)
         {
             var gameId = Guid.Parse(proxyRequest.PathParameters["gameId"]);
