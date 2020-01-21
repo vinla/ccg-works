@@ -25,11 +25,11 @@ namespace CcgWorks.Lambda.UploadCards
         public Task<APIGatewayProxyResponse> HandleRequest(APIGatewayProxyRequest proxyRequest, ILambdaContext lambdaContext)
         {
             var gameId = Guid.Parse(proxyRequest.PathParameters["gameId"]);
-            var request = JsonConvert.DeserializeObject<Request>(proxyRequest.Body);            
+            var request = JsonConvert.DeserializeObject<Payloads.Request>(proxyRequest.Body);            
             return ResponseCreator.From(() => UploadCards(gameId, request) ).GetResponseAsync();
         }
 
-        private async Task UploadCards(Guid gameId, Request request)
+        private async Task UploadCards(Guid gameId, Payloads.Request request)
         {
 			var cards = new Card[] { };
 

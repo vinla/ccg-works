@@ -1,4 +1,11 @@
 ﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
+using CcgWorks.Core;
+using Newtonsoft.Json;
+using SixLabors.ImageSharp;
 
 namespace CcgWorks.Lambda.PostGame
 {
@@ -15,7 +22,15 @@ namespace CcgWorks.Lambda.PostGame
             _userContext = userContext;
         }
 
-        public Task<APIGatewayProxyResponse> HandleRequest(APIGatewayProxyRequest proxyRequest, ILambdaContext lambdaContext)
+        public async Task<APIGatewayProxyResponse> HandleRequest(APIGatewayProxyRequest proxyRequest, ILambdaContext lambdaContext)
+        {
+            var request = JsonConvert.DeserializeObject<Request>(proxyRequest.Body);
+            return await ResponseCreator
+                .From(() => CreateGame(request.Name, request.Description, Convert.FromBase64String(request.ImageData)))
+                .GetResponseAsync();
+        }
+
+        private async Task CreateGame(string name, string description, byte[] imageData)
         {
             Game newGame = new Game
 			{
@@ -27,14 +42,10 @@ namespace CcgWorks.Lambda.PostGame
 				CardCount = 0
             };
 
-            if (image != null)
+            if (imageData.Length > 0)
             {
-                using (var ms = new MemoryStream())
-                {
-                    image.CopyTo(ms);                    
-                    string imageType = Path.GetExtension(image.FileName).Replace(".", "");
-                    newGame.ImageUrl = await _imageStore.Add("Game", newGame.Id, 1, imageType, ms.GetBuffer());
-                }
+                var imageFormat = Image.DetectFormat(imageData);
+                newGame.ImageUrl = await _imageStore.Add("Game", newGame.Id, 1, imageFormat.FileExtensions.FirstOrDefault(), imageData);                
             }
 
             await _gameStore.Add(newGame);

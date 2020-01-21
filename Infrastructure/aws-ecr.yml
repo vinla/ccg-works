@@ -2,6 +2,43 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 Description: Stack for hosting the ccg works api
 
+Parameters:
+
+  Vpc:
+    Type: String
+    Description: Id of the vpc to deploy into 
+    Default: vpc-7b092e1d
+
+  Subnet1:
+    Type: String
+    Description: Id of the first subnet
+    Default: subnet-1dbede55 
+
+  Subnet2:
+    Type: String
+    Description: Id of the second subnet
+    Default: subnet-b8c252de
+  
+  Subnet3:
+    Type: String
+    Description: Id of the third subnet
+    Default: subnet-e5c91bbf
+
+  DockerImage:
+    Type: String
+    Description: Id for the docker API docker image
+    Default: 
+
+  ImageStoreBucket:
+    Type: String
+    Description: Bucket name for the image ImageStoreBucket
+    Default: ccgworks-images
+
+  ImageStoreUrl:
+    Type: String
+    Description: Url for the distribution
+    Default: https://dd1bt1ytlgdzr.cloudfront.ne
+
 Resources:
 
   CcgWorksRole:
@@ -24,7 +61,7 @@ Resources:
               Action:
                 - cognito-idp:GetSigningCertificate
               Resource:
-                - !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/eu-west-2_4YYIIEtaa
+                - !Sub arn:aws:cognito-idp:eu-west-2:${AWS::AccountId}:userpool/eu-west-2_4YYIIEtaa
             - Effect: Allow
               Action:
                 - ecr:BatchCheckLayerAvailability
@@ -35,19 +72,22 @@ Resources:
                 - !Sub arn:aws:ecr::${AWS::AccountId}:repository/ccgworks
             - Effect: Allow
               Action:
-                - ssm:GetParameter
-                - ssm:GetParameters
-                - ssm:GetParametersByPath
-              Resource:
-                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*
-            - Effect: Allow
-              Action:
                 - s3:PutObject
                 - s3:PutObjectAcl
                 - s3:GetObject
                 - s3:ListObject
               Resource:
-                - !Sub arn:aws:s3:::cogs-images/*
+                - !Sub arn:aws:s3:::ccg-images/*
+            - Effect: Allow
+              Action:
+                - sdb:GetAttributes
+                - sdb:DeleteAttributes
+                - sdb:PutAttributes
+                - sdb:Select
+              Resource:
+                - !Sub arn:aws:sdb:${AWS::RegionId}:${AWS::AccountId}:domain/Cards
+                - !Sub arn:aws:sdb:${AWS::RegionId}:${AWS::AccountId}:domain/Games
+                - !Sub arn:aws:sdb:${AWS::RegionId}:${AWS::AccountId}:domain/Decks
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
 
@@ -55,7 +95,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:               
       GroupDescription: ECS Security Group for load balancer
-      VpcId: vpc-e262d18a
+      VpcId: !Ref Vpc
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 443
@@ -66,7 +106,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:             
       GroupDescription: ECS Security Group for cluster
-      VpcId: vpc-e262d18a
+      VpcId: !Ref Vpc
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 0
@@ -78,17 +118,6 @@ Resources:
           FromPort: 0
           ToPort: 65535
 
-  DbSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: ECS Security Group for database
-      VpcId: vpc-e262d18a
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref CcgWorksSecurityGroup
-          
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -109,9 +138,9 @@ Resources:
         - Key: idle_timeout.timeout_seconds
           Value: '30'
       Subnets:
-        - subnet-86e16eef
-        - subnet-ebb37a91
-        - subnet-f45d42b9
+        - !Ref Subnet1
+        - !Ref Subnet2
+        - !Ref Subnet3
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
 
@@ -175,15 +204,15 @@ Resources:
       Port: 80
       Protocol: HTTP
       UnhealthyThresholdCount: 2
-      VpcId: vpc-e262d18a
+      VpcId: !Ref Vpc
       
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-        - subnet-86e16eef
-        - subnet-ebb37a91
-        - subnet-f45d42b9
+        - !Ref Subnet1
+        - !Ref Subnet2
+        - !Ref Subnet3
       LaunchConfigurationName: !Ref EcsLaunchConfig
       MinSize: 1
       MaxSize: 1
@@ -234,7 +263,7 @@ Resources:
       ContainerDefinitions:
         - Name: CcgWorksApi
           Essential: 'true'
-          Image: 848502523218.dkr.ecr.eu-west-2.amazonaws.com/ccgworks:api-0.3
+          Image: !Ref DockerImage
           MemoryReservation: 900
           LogConfiguration:
             LogDriver: awslogs
@@ -247,6 +276,10 @@ Resources:
           Environment:
             - Name: HOST
               Value: AWS
+            - Name: IMAGE_STORE_BUCKET
+              Value: !Ref ImageStoreBucket
+            - Name: IMAGE_STORE_URL
+              Value: !Ref ImageStoreUrl
   
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
